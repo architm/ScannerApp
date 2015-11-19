@@ -25,7 +25,6 @@ import archit.persistence.HistoryRepositoryImpl;
 /**
  * handling the QR/Barcode Scanning Operation
  * Used Zxing Barcode Scanning Library for detection
- *
  */
 public class ScannerActivity extends Activity {
 
@@ -43,26 +42,29 @@ public class ScannerActivity extends Activity {
             Log.e(TAG, e.getMessage());
         }
         IntentIntegrator integrator = new IntentIntegrator(ScannerActivity.this);
+        integrator.setCaptureActivity(BarcodeScannerActivity.class);
         integrator.initiateScan();
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-            IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-                if (scanResult != null) {
-                    String re = scanResult.getContents();
-                    try {
-                        saveEntity(re);
-                    } catch (IOException | CouchbaseLiteException e) {
-                        Log.e(TAG, e.getMessage());
+        super.onActivityResult(requestCode, resultCode, intent);
+        switch (requestCode) {
+            case IntentIntegrator.REQUEST_CODE:
+                if (resultCode == Activity.RESULT_OK) {
+                    IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+                    if (scanResult.getContents() != null) {
+                        String re = scanResult.getContents();
+                        try {
+                            saveEntity(re);
+                        } catch (IOException | CouchbaseLiteException e) {
+                            Log.e(TAG, e.getMessage());
+                        }
                     }
-                    Intent homepage = new Intent(ScannerActivity.this, HistoryActivity.class);
-                    ScannerActivity.this.startActivity(homepage);
-                    ScannerActivity.this.finish();
-                } else {
-                    Toast toast = Toast.makeText(getApplicationContext(),
-                            "No scan data received!", Toast.LENGTH_SHORT);
-                    toast.show();
                 }
+                Intent homepage = new Intent(ScannerActivity.this, HistoryActivity.class);
+                ScannerActivity.this.startActivity(homepage);
+                ScannerActivity.this.finish();
+        }
     }
 
     private void saveEntity(String entity) throws IOException, CouchbaseLiteException {
@@ -78,14 +80,14 @@ public class ScannerActivity extends Activity {
         hr.updateKey(key, entry);
     }
 
-    boolean doubleBackToExitPressedOnce = false;
+   /* boolean doubleBackToExitPressedOnce = false;
 
     @Override
     public void onBackPressed() {
         if (doubleBackToExitPressedOnce) {
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);//***Change Here***
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);/*//***Change Here***
             startActivity(intent);
             finish();
             System.exit(0);
@@ -101,5 +103,5 @@ public class ScannerActivity extends Activity {
                 doubleBackToExitPressedOnce = false;
             }
         }, 2000);
-    }
+    }*/
 }
